@@ -78,7 +78,7 @@ cp .env.example .env
 Now open `.env` and fill in your MySQL credentials:
 
 ```env
-PORT=5000
+PORT=8003
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
@@ -95,10 +95,10 @@ npm run dev
 
 You should see:
 ```
-✅  Backend running at http://localhost:5000
+✅  Backend running at http://localhost:8003
 ```
 
-Test it: open http://localhost:5000/api/health → should return `{"status":"ok"}`
+Test it: open http://localhost:8003/api/health → should return `{"status":"ok"}`
 
 ---
 
@@ -115,10 +115,10 @@ npm run dev
 You should see:
 ```
   VITE v5.x.x  ready in xxx ms
-  ➜  Local:   http://localhost:5173/
+  ➜  Local:   http://localhost:3007/
 ```
 
-Open **http://localhost:5173** in your browser.
+Open **http://localhost:3007** in your browser.
 
 ---
 
@@ -188,7 +188,7 @@ The system **auto-detects** type and department from the prefix — no manual ta
 ## 🔧 Common Issues
 
 **"Failed to load data. Is the backend running?"**
-→ Make sure backend is running on port 5000: `cd backend && npm run dev`
+→ Make sure backend is running on port 8003: `cd backend && npm run dev`
 
 **MySQL connection refused**
 → Check your `.env` credentials. Make sure MySQL service is running.
