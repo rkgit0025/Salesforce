@@ -78,12 +78,12 @@ function UploadZone({ title, hint, uploadFn, onSuccess, color = "var(--accent)" 
 
 // ── Main App ──────────────────────────────────────────────────────────
 const TABS = [
-  { key: "opportunity", label: "Opportunities", icon: "🎯", desc: "BOG · POG · SOG · WOG" },
   { key: "lead",        label: "Leads",          icon: "🌱", desc: "BLG · PLG · SLG · WLG" },
+  { key: "opportunity", label: "Opportunities", icon: "🎯", desc: "BOG · POG · SOG · WOG" },
 ];
 
 export default function App() {
-  const [activeTab,  setActiveTab]  = useState("opportunity");
+  const [activeTab,  setActiveTab]  = useState("lead");
   const [oppKey,     setOppKey]     = useState(0);
   const [leadKey,    setLeadKey]    = useState(0);
   const [uploadOpen, setUploadOpen] = useState(false);

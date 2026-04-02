@@ -21,20 +21,72 @@ import LeadByIndustry           from "./charts/LeadByIndustry";
 import LeadByState              from "./charts/LeadByState";
 import LeadByOwner              from "./charts/LeadByOwner";
 
+// ── Department filter options ─────────────────────────────────────────
+const DEPT_FILTERS = [
+  { key: "All",       label: "All",       emoji: "🔢" },
+  { key: "Bio Fuels", label: "Bio Fuels", emoji: "🌱" },
+  { key: "Spare",     label: "Spare",     emoji: "⚙️" },
+  { key: "Sugar",     label: "Sugar",     emoji: "🍬" },
+  { key: "Water",     label: "Water",     emoji: "💧" },
+];
+
+function DeptFilterBar({ active, onChange }) {
+  return (
+    <div style={{
+      display: "flex", gap: "8px", flexWrap: "wrap",
+      background: "var(--surface2)",
+      border: "1px solid var(--border)",
+      borderRadius: "var(--radius)",
+      padding: "10px 14px",
+      marginBottom: "24px",
+      alignItems: "center",
+    }}>
+      <span style={{ color: "var(--text-muted)", fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginRight: "4px" }}>
+        Filter by Dept:
+      </span>
+      {DEPT_FILTERS.map((f) => {
+        const isActive = active === f.key;
+        return (
+          <button
+            key={f.key}
+            onClick={() => onChange(f.key)}
+            style={{
+              display: "flex", alignItems: "center", gap: "5px",
+              padding: "6px 14px",
+              borderRadius: "20px",
+              border: isActive ? "1.5px solid var(--accent)" : "1.5px solid var(--border)",
+              background: isActive ? "var(--accent)" : "var(--surface)",
+              color: isActive ? "#fff" : "var(--text-muted)",
+              fontSize: "13px", fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.15s",
+              fontFamily: "var(--font-body)",
+            }}
+          >
+            <span>{f.emoji}</span>
+            <span>{f.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Opportunities Panel ───────────────────────────────────────────────
 export function OpportunityPanel({ refreshKey }) {
+  const [dept, setDept]     = useState("All");
   const [data, setData]     = useState({});
   const [loading, setLoad]  = useState(true);
   const [error, setError]   = useState(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (d) => {
     setLoad(true); setError(null);
     try {
       const results = await Promise.allSettled([
-        getOppSummary(), getOppStatusOverTime(), getOppByIndustry(),
-        getOppStagePerformance(), getOppIndustryPerformance(),
-        getOppByState(), getOppOverTimeQuarterly(),
-        getOppProposalOwnerPerf(), getOppClosedWonByState(),
+        getOppSummary(d), getOppStatusOverTime(d), getOppByIndustry(d),
+        getOppStagePerformance(d), getOppIndustryPerformance(d),
+        getOppByState(d), getOppOverTimeQuarterly(d),
+        getOppProposalOwnerPerf(d), getOppClosedWonByState(d),
       ]);
       const names = ["sum","sot","ind","sp","ip","st","qtr","propOwner","cwState"];
       const out   = {};
@@ -48,54 +100,69 @@ export function OpportunityPanel({ refreshKey }) {
     finally { setLoad(false); }
   }, []);
 
-  useEffect(() => { load(); }, [load, refreshKey]);
-  if (loading) return <Loader />;
-  if (error)   return <Err msg={error} />;
+  useEffect(() => { load(dept); }, [load, refreshKey, dept]);
+
+  const handleDept = (d) => { setDept(d); };
+
+  if (error) return <Err msg={error} />;
 
   return (
     <div style={{ display: "grid", gap: "24px" }}>
-      <SummaryCards data={data.sum} />
-      <StatusOverTime data={data.sot?.data}    stages={data.sot?.stages} />
-      <ByIndustry     data={data.ind} />
-      <StagePerformance    data={data.sp} />
-      <IndustryPerformance data={data.ip} />
-      <ByState             data={data.st} />
-      <OverTimeQuarterly   data={data.qtr} />
-      <ProposalOwnerPerformance data={data.propOwner} />
-      <ClosedWonByState         data={data.cwState} />
+      <DeptFilterBar active={dept} onChange={handleDept} />
+      {loading ? <Loader /> : (
+        <>
+          <SummaryCards data={data.sum} />
+          <StatusOverTime data={data.sot?.data}    stages={data.sot?.stages} />
+          <ByIndustry     data={data.ind} />
+          <StagePerformance    data={data.sp} />
+          <IndustryPerformance data={data.ip} />
+          <ByState             data={data.st} />
+          <OverTimeQuarterly   data={data.qtr} />
+          <ProposalOwnerPerformance data={data.propOwner} />
+          <ClosedWonByState         data={data.cwState} />
+        </>
+      )}
     </div>
   );
 }
 
 // ── Leads Panel ───────────────────────────────────────────────────────
 export function LeadsPanel({ refreshKey }) {
+  const [dept, setDept]     = useState("All");
   const [data, setData]     = useState({});
   const [loading, setLoad]  = useState(true);
   const [error, setError]   = useState(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (d) => {
     setLoad(true); setError(null);
     try {
       const [sum, sot, ind, st, owner] = await Promise.all([
-        getLeadSummary(), getLeadStatusOverTime(),
-        getLeadByIndustry(), getLeadByState(), getLeadByOwner(),
+        getLeadSummary(d), getLeadStatusOverTime(d),
+        getLeadByIndustry(d), getLeadByState(d), getLeadByOwner(d),
       ]);
       setData({ sum, sot, ind, st, owner });
     } catch { setError("Failed to load data. Is the backend running?"); }
     finally { setLoad(false); }
   }, []);
 
-  useEffect(() => { load(); }, [load, refreshKey]);
-  if (loading) return <Loader />;
-  if (error)   return <Err msg={error} />;
+  useEffect(() => { load(dept); }, [load, refreshKey, dept]);
+
+  const handleDept = (d) => { setDept(d); };
+
+  if (error) return <Err msg={error} />;
 
   return (
     <div style={{ display: "grid", gap: "24px" }}>
-      <LeadSummaryCards  data={data.sum} />
-      <LeadStatusOverTime data={data.sot?.data} statuses={data.sot?.statuses} />
-      <LeadByIndustry    data={data.ind} />
-      <LeadByState       data={data.st} />
-      <LeadByOwner       data={data.owner} />
+      <DeptFilterBar active={dept} onChange={handleDept} />
+      {loading ? <Loader /> : (
+        <>
+          <LeadSummaryCards  data={data.sum} />
+          <LeadStatusOverTime data={data.sot?.data} statuses={data.sot?.statuses} />
+          <LeadByIndustry    data={data.ind} />
+          <LeadByState       data={data.st} />
+          <LeadByOwner       data={data.owner} />
+        </>
+      )}
     </div>
   );
 }
@@ -112,3 +179,4 @@ const Err = ({ msg }) => (
     ⚠️ {msg}
   </div>
 );
+

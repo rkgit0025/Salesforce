@@ -142,10 +142,18 @@ router.post("/", upload.single("file"), async (req, res) => {
     if (C.leadNum === -1 || C.status === -1)
       return res.status(400).json({ error: "Required columns not found. Check file format." });
 
-    let inserted = 0, updated = 0, skipped = 0;
+    let inserted = 0, skipped = 0;
     const conn = await pool.getConnection();
 
     try {
+      // Drop unique index if still present (safe migration, runs once)
+      await conn.execute(
+        `ALTER TABLE leads DROP INDEX lead_number`
+      ).catch(() => {/* already removed — ignore */});
+
+      // Wipe existing data so every upload is a fresh load
+      await conn.execute(`TRUNCATE TABLE leads`);
+
       for (const row of dataRows) {
         const num = row[C.leadNum];
         if (!num) { skipped++; continue; }
@@ -169,39 +177,21 @@ router.post("/", upload.single("file"), async (req, res) => {
           fy_suffix,
         ];
 
-        const [result] = await conn.execute(
+        await conn.execute(
           `INSERT INTO leads
              (lead_number, first_name, last_name, company, industry_type,
               email, lead_source, rating, street, lead_owner, lead_status,
               create_date, state, department, fy_suffix)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-           ON DUPLICATE KEY UPDATE
-             first_name    = VALUES(first_name),
-             last_name     = VALUES(last_name),
-             company       = VALUES(company),
-             industry_type = VALUES(industry_type),
-             email         = VALUES(email),
-             lead_source   = VALUES(lead_source),
-             rating        = VALUES(rating),
-             street        = VALUES(street),
-             lead_owner    = VALUES(lead_owner),
-             lead_status   = VALUES(lead_status),
-             create_date   = VALUES(create_date),
-             state         = VALUES(state),
-             department    = VALUES(department),
-             fy_suffix     = VALUES(fy_suffix)`,
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
           values
         );
-
-        if (result.affectedRows === 1) inserted++;
-        else if (result.affectedRows === 2) updated++;
-        else skipped++;
+        inserted++;
       }
     } finally {
       conn.release();
     }
 
-    res.json({ success: true, summary: { total: dataRows.length, inserted, updated, skipped } });
+    res.json({ success: true, summary: { total: dataRows.length, inserted, updated: 0, skipped } });
   } catch (err) {
     console.error("Lead upload error:", err);
     res.status(500).json({ error: err.message });

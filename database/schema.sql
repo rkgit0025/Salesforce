@@ -7,7 +7,7 @@ USE pipeline_db;
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS pipeline (
   id                  INT AUTO_INCREMENT PRIMARY KEY,
-  opportunity_number  VARCHAR(50) NOT NULL UNIQUE,
+  opportunity_number  VARCHAR(50) NOT NULL,
   created_date        DATE,
   account_name        VARCHAR(255),
   industry            VARCHAR(100),
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS pipeline (
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS leads (
   id            INT AUTO_INCREMENT PRIMARY KEY,
-  lead_number   VARCHAR(50) NOT NULL UNIQUE,
+  lead_number   VARCHAR(50) NOT NULL,
   first_name    VARCHAR(100),
   last_name     VARCHAR(100),
   company       VARCHAR(255),

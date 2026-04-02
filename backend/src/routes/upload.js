@@ -40,10 +40,18 @@ router.post("/", upload.single("file"), async (req, res) => {
 
     if (!rows.length) return res.status(400).json({ error: "Excel file is empty" });
 
-    let inserted = 0, updated = 0, skipped = 0;
     const conn = await pool.getConnection();
+    let inserted = 0, skipped = 0;
 
     try {
+      // Drop unique index if still present (safe migration, runs once)
+      await conn.execute(
+        `ALTER TABLE pipeline DROP INDEX opportunity_number`
+      ).catch(() => {/* index already removed — ignore */});
+
+      // Wipe existing data so every upload is a fresh load
+      await conn.execute(`TRUNCATE TABLE pipeline`);
+
       for (const row of rows) {
         const num = row["Opportunity Auto Number"];
         if (!num) { skipped++; continue; }
@@ -54,7 +62,7 @@ router.post("/", upload.single("file"), async (req, res) => {
           num.toString().trim(),
           parseDate(row["Created Date"]),
           row["Account Name"]                         || null,
-          row["Industry"] || row["Leachate"]          || null,   // "Leachate" col = industry type
+          row["Industry"] || row["Leachate"]          || null,
           row["Mailing State/Province"]               || null,
           row["Opportunity Owner"]     || null,
           row["Proposal Person"]       || null,
@@ -67,40 +75,22 @@ router.post("/", upload.single("file"), async (req, res) => {
           department,
         ];
 
-        const [result] = await conn.execute(
+        await conn.execute(
           `INSERT INTO pipeline
              (opportunity_number, created_date, account_name, industry,
               mailing_state, opportunity_owner, proposal_person, stage,
               feed_rate, unit_of_feed_rate, quoted_value, final_price,
               close_date, department)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-           ON DUPLICATE KEY UPDATE
-             created_date       = VALUES(created_date),
-             account_name       = VALUES(account_name),
-             industry           = VALUES(industry),
-             mailing_state      = VALUES(mailing_state),
-             opportunity_owner  = VALUES(opportunity_owner),
-             proposal_person    = VALUES(proposal_person),
-             stage              = VALUES(stage),
-             feed_rate          = VALUES(feed_rate),
-             unit_of_feed_rate  = VALUES(unit_of_feed_rate),
-             quoted_value       = VALUES(quoted_value),
-             final_price        = VALUES(final_price),
-             close_date         = VALUES(close_date),
-             department         = VALUES(department)`,
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
           values
         );
-
-        if (result.affectedRows === 1) inserted++;
-        else if (result.affectedRows === 2) updated++;
-        else skipped++;
+        inserted++;
       }
     } finally {
       conn.release();
     }
 
-    const duplicates = rows.length - (inserted + updated + skipped);
-    res.json({ success: true, summary: { total: rows.length, inserted, updated, skipped, duplicates: updated } });
+    res.json({ success: true, summary: { total: rows.length, inserted, updated: 0, skipped } });
   } catch (err) {
     console.error("Upload error:", err);
     res.status(500).json({ error: err.message });
@@ -108,3 +98,4 @@ router.post("/", upload.single("file"), async (req, res) => {
 });
 
 module.exports = router;
+

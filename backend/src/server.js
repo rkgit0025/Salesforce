@@ -20,4 +20,4 @@ app.use("/api/analytics-leads",   analyticsLeads);
 
 app.get("/api/health", (_, res) => res.json({ status: "ok" }));
 
-app.listen(PORT, () => console.log(`✅  Backend running at http://localhost:${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`✅  Backend running at http://localhost:${PORT}`));

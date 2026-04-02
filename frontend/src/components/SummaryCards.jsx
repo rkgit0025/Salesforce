@@ -1,15 +1,17 @@
-const fmt = (n) =>
+const fmtNum = (n) =>
   n == null ? "—" : Number(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
 
 const fmtCr = (n) => {
-  if (n == null) return "—";
-  const cr = n / 10000000;
-  return `₹${cr.toFixed(2)} Cr`;
+  if (n == null || Number(n) === 0) return "₹0";
+  const cr = Number(n) / 10000000;
+  if (cr >= 1) return `₹${cr.toFixed(2)} Cr`;
+  const lac = Number(n) / 100000;
+  return `₹${lac.toFixed(2)} L`;
 };
 
-const card = (label, value, color = "var(--accent)") => ({
+const cardStyle = (color) => ({
   background: "var(--surface)",
-  border: `1px solid var(--border)`,
+  border: "1px solid var(--border)",
   borderTop: `3px solid ${color}`,
   borderRadius: "var(--radius)",
   padding: "20px 24px",
@@ -20,61 +22,37 @@ const card = (label, value, color = "var(--accent)") => ({
 export default function SummaryCards({ data }) {
   if (!data) return null;
 
-  // Win rate = Closed Won / (Closed Won + Closed Lost) — resolved deals only
-  const resolved = (data.closed_won || 0) + (data.closed_lost || 0);
-  const winRate =
-    resolved > 0
-      ? (((data.closed_won || 0) / resolved) * 100).toFixed(1)
-      : "0.0";
-
   const cards = [
-    { label: "Total Records", value: fmt(data.total), color: "var(--accent)", note: "Unique opportunities (duplicates merged on upload)" },
-    { label: "Closed Won",            value: fmt(data.closed_won),       color: "var(--success)" },
-    { label: "Closed Lost",           value: fmt(data.closed_lost),      color: "var(--danger)" },
-    { label: "Win Rate (Resolved)",   value: `${winRate}%`,              color: "var(--warning)" },
-    { label: "Revenue (Won Deals)",   value: fmtCr(data.total_revenue),  color: "var(--accent2)" },
-    { label: "Active Sales Value", value: fmtCr(data.total_quoted),   color: "var(--text-muted)" },
+    { label: "Total Opportunity",   value: fmtNum(data.total),              color: "var(--accent)",      icon: null },
+    { label: "Closed Won",          value: fmtNum(data.closed_won),          color: "var(--success)",     icon: null },
+    { label: "Total Quoted Value",  value: fmtCr(data.total_quoted_value),   color: "var(--warning)",     icon: null },
+    { label: "Final Value",         value: fmtCr(data.final_value),          color: "var(--accent2)",     icon: null },
+    { label: "Top Owner",           value: data.top_owner || "—",            color: "#06b6d4",            icon: "👤" },
+    { label: "Top State",           value: data.top_state || "—",            color: "#8b5cf6",            icon: "📍" },
   ];
 
   return (
     <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: "28px" }}>
       {cards.map((c) => (
-        <div key={c.label} style={card(c.label, c.value, c.color)}>
-          <div style={{ color: "var(--text-muted)", fontSize: "12px", marginBottom: "6px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        <div key={c.label} style={cardStyle(c.color)}>
+          <div style={{ color: "var(--text-muted)", fontSize: "11px", marginBottom: "6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
             {c.label}
           </div>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--text)" }}>
-            {c.value}
-          </div>
-          {c.note && (
-            <div style={{ color: "var(--text-muted)", fontSize: "11px", marginTop: "4px", lineHeight: 1.4 }}>
-              {c.note}
+          {c.icon ? (
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "4px" }}>
+              <span style={{ fontSize: "18px" }}>{c.icon}</span>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: "15px", fontWeight: 700, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {c.value}
+              </div>
+            </div>
+          ) : (
+            <div style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 700, color: "var(--text)" }}>
+              {c.value}
             </div>
           )}
         </div>
       ))}
-
-      {/* Department mini-badges */}
-      {data.departments && (
-        <div style={{ ...card("dept", null, "var(--border)"), display: "flex", flexDirection: "column", gap: "6px" }}>
-          <div style={{ color: "var(--text-muted)", fontSize: "12px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
-            By Department
-          </div>
-          {[
-            { key: "biofuels", label: "Biofuels 🌱", color: "#10b981" },
-            { key: "sugar",    label: "Sugar 🍬",     color: "#f59e0b" },
-            { key: "water",    label: "Water 💧",     color: "#06b6d4" },
-            { key: "spares",   label: "Spares ⚙️",    color: "#8b5cf6" },
-          ].map((d) => (
-            <div key={d.key} style={{ display: "flex", justifyContent: "space-between", gap: "16px" }}>
-              <span style={{ color: "var(--text-muted)", fontSize: "13px" }}>{d.label}</span>
-              <span style={{ fontWeight: 600, color: d.color, fontFamily: "var(--font-display)" }}>
-                {fmt(data.departments[d.key])}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
+

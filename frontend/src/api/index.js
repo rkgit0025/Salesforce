@@ -21,19 +21,21 @@ export const uploadLeads = (file, onProgress) => {
 };
 
 // ── Opportunities analytics ───────────────────────────────────────────
-export const getOppSummary            = () => api.get("/analytics/summary").then(r => r.data);
-export const getOppStatusOverTime     = () => api.get("/analytics/status-over-time").then(r => r.data);
-export const getOppByIndustry         = () => api.get("/analytics/by-industry").then(r => r.data);
-export const getOppStagePerformance   = () => api.get("/analytics/stage-performance").then(r => r.data);
-export const getOppIndustryPerformance= () => api.get("/analytics/industry-performance").then(r => r.data);
-export const getOppByState            = () => api.get("/analytics/by-state").then(r => r.data);
-export const getOppOverTimeQuarterly       = () => api.get("/analytics/over-time-quarterly").then(r => r.data);
-export const getOppProposalOwnerPerf       = () => api.get("/analytics/proposal-owner-performance").then(r => r.data);
-export const getOppClosedWonByState        = () => api.get("/analytics/closed-won-by-state").then(r => r.data);
+const p = (dept) => dept && dept !== 'All' ? { params: { dept } } : {};
+
+export const getOppSummary            = (dept) => api.get("/analytics/summary",                  p(dept)).then(r => r.data);
+export const getOppStatusOverTime     = (dept) => api.get("/analytics/status-over-time",         p(dept)).then(r => r.data);
+export const getOppByIndustry         = (dept) => api.get("/analytics/by-industry",              p(dept)).then(r => r.data);
+export const getOppStagePerformance   = (dept) => api.get("/analytics/stage-performance",        p(dept)).then(r => r.data);
+export const getOppIndustryPerformance= (dept) => api.get("/analytics/industry-performance",     p(dept)).then(r => r.data);
+export const getOppByState            = (dept) => api.get("/analytics/by-state",                 p(dept)).then(r => r.data);
+export const getOppOverTimeQuarterly  = (dept) => api.get("/analytics/over-time-quarterly",      p(dept)).then(r => r.data);
+export const getOppProposalOwnerPerf  = (dept) => api.get("/analytics/proposal-owner-performance",p(dept)).then(r => r.data);
+export const getOppClosedWonByState   = (dept) => api.get("/analytics/closed-won-by-state",      p(dept)).then(r => r.data);
 
 // ── Leads analytics ───────────────────────────────────────────────────
-export const getLeadSummary        = () => api.get("/analytics-leads/summary").then(r => r.data);
-export const getLeadStatusOverTime = () => api.get("/analytics-leads/status-over-time").then(r => r.data);
-export const getLeadByIndustry     = () => api.get("/analytics-leads/by-industry").then(r => r.data);
-export const getLeadByState        = () => api.get("/analytics-leads/by-state").then(r => r.data);
-export const getLeadByOwner        = () => api.get("/analytics-leads/by-owner").then(r => r.data);
+export const getLeadSummary        = (dept) => api.get("/analytics-leads/summary",        p(dept)).then(r => r.data);
+export const getLeadStatusOverTime = (dept) => api.get("/analytics-leads/status-over-time",p(dept)).then(r => r.data);
+export const getLeadByIndustry     = (dept) => api.get("/analytics-leads/by-industry",    p(dept)).then(r => r.data);
+export const getLeadByState        = (dept) => api.get("/analytics-leads/by-state",       p(dept)).then(r => r.data);
+export const getLeadByOwner        = (dept) => api.get("/analytics-leads/by-owner",       p(dept)).then(r => r.data);
