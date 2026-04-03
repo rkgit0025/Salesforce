@@ -344,4 +344,69 @@ router.get("/over-time-quarterly", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ── closed-won-value (by Owner & by Industry) ────────────────────────
+router.get("/closed-won-value", async (req, res) => {
+  try {
+    const { clause: wClause, params: wParams } = deptWhere(req.query.dept);
+    const wonFilter = wClause
+      ? `${wClause} AND stage = 'Closed Won'`
+      : `WHERE stage = 'Closed Won'`;
+
+    // By Opportunity Owner
+    const [byOwnerRaw] = await pool.execute(
+      `SELECT
+         COALESCE(TRIM(opportunity_owner), 'Unassigned')           AS owner,
+         COALESCE(industry, 'Unknown')                             AS industry,
+         ${STATE_EXPR}                                             AS state,
+         CAST(COUNT(*) AS UNSIGNED)                                AS row_count,
+         CAST(COALESCE(SUM(final_price), 0) AS DECIMAL(15,2))     AS final_value
+       FROM pipeline
+       ${wonFilter}
+       GROUP BY
+         COALESCE(TRIM(opportunity_owner), 'Unassigned'),
+         COALESCE(industry, 'Unknown'),
+         ${STATE_EXPR}
+       ORDER BY final_value DESC`,
+      wParams
+    );
+
+    // Aggregate per owner (sum across industry/state combos)
+    const ownerMap = {};
+    for (const r of byOwnerRaw) {
+      const k = r.owner;
+      if (!ownerMap[k]) {
+        ownerMap[k] = { owner: k, industry: r.industry, state: r.state || "—", count: 0, final_value: 0 };
+      }
+      ownerMap[k].count       += Number(r.row_count)   || 0;
+      ownerMap[k].final_value += Number(r.final_value) || 0;
+    }
+    const byOwner = Object.values(ownerMap)
+      .sort((a, b) => b.final_value - a.final_value);
+
+    // By Industry
+    const [byIndustryRaw] = await pool.execute(
+      `SELECT
+         COALESCE(industry, 'Unknown')                             AS industry,
+         CAST(COUNT(*) AS UNSIGNED)                                AS row_count,
+         CAST(COALESCE(SUM(final_price), 0) AS DECIMAL(15,2))     AS final_value
+       FROM pipeline
+       ${wonFilter}
+       GROUP BY COALESCE(industry, 'Unknown')
+       ORDER BY final_value DESC`,
+      wParams
+    );
+
+    const byIndustry = byIndustryRaw.map(r => ({
+      industry:    r.industry,
+      count:       Number(r.row_count)   || 0,
+      final_value: Number(r.final_value) || 0,
+    }));
+
+    res.json({ byOwner, byIndustry });
+  } catch (err) {
+    console.error("closed-won-value error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

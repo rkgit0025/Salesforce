@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import {
   getOppSummary, getOppStatusOverTime, getOppByIndustry,
   getOppStagePerformance, getOppIndustryPerformance, getOppByState, getOppOverTimeQuarterly,
-  getOppProposalOwnerPerf, getOppClosedWonByState,
+  getOppProposalOwnerPerf, getOppClosedWonByState, getOppClosedWonValue,
   getLeadSummary, getLeadStatusOverTime, getLeadByIndustry, getLeadByState, getLeadByOwner,
 } from "../api";
 
@@ -16,6 +16,7 @@ import ByState                  from "./charts/ByState";
 import OverTimeQuarterly        from "./charts/OverTimeQuarterly";
 import ProposalOwnerPerformance from "./charts/ProposalOwnerPerformance";
 import ClosedWonByState         from "./charts/ClosedWonByState";
+import ClosedWonValueChart      from "./charts/ClosedWonValueChart";
 import LeadStatusOverTime       from "./charts/LeadStatusOverTime";
 import LeadByIndustry           from "./charts/LeadByIndustry";
 import LeadByState              from "./charts/LeadByState";
@@ -86,9 +87,9 @@ export function OpportunityPanel({ refreshKey }) {
         getOppSummary(d), getOppStatusOverTime(d), getOppByIndustry(d),
         getOppStagePerformance(d), getOppIndustryPerformance(d),
         getOppByState(d), getOppOverTimeQuarterly(d),
-        getOppProposalOwnerPerf(d), getOppClosedWonByState(d),
+        getOppProposalOwnerPerf(d), getOppClosedWonByState(d), getOppClosedWonValue(d),
       ]);
-      const names = ["sum","sot","ind","sp","ip","st","qtr","propOwner","cwState"];
+      const names = ["sum","sot","ind","sp","ip","st","qtr","propOwner","cwState","cwValue"];
       const out   = {};
       results.forEach((r, i) => {
         if (r.status === "fulfilled") out[names[i]] = r.value;
@@ -120,6 +121,7 @@ export function OpportunityPanel({ refreshKey }) {
           <OverTimeQuarterly   data={data.qtr} />
           <ProposalOwnerPerformance data={data.propOwner} />
           <ClosedWonByState         data={data.cwState} />
+          <ClosedWonValueChart      data={data.cwValue} />
         </>
       )}
     </div>

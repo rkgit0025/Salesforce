@@ -32,6 +32,7 @@ export const getOppByState            = (dept) => api.get("/analytics/by-state",
 export const getOppOverTimeQuarterly  = (dept) => api.get("/analytics/over-time-quarterly",      p(dept)).then(r => r.data);
 export const getOppProposalOwnerPerf  = (dept) => api.get("/analytics/proposal-owner-performance",p(dept)).then(r => r.data);
 export const getOppClosedWonByState   = (dept) => api.get("/analytics/closed-won-by-state",      p(dept)).then(r => r.data);
+export const getOppClosedWonValue     = (dept) => api.get("/analytics/closed-won-value",          p(dept)).then(r => r.data);
 
 // ── Leads analytics ───────────────────────────────────────────────────
 export const getLeadSummary        = (dept) => api.get("/analytics-leads/summary",        p(dept)).then(r => r.data);
