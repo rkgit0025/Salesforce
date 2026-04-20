@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { OpportunityPanel, LeadsPanel } from "./components/DashboardPanel";
+import { OpportunityPanel, LeadsPanel, ExcelDataPanel } from "./components/DashboardPanel";
 import { uploadOpportunities, uploadLeads } from "./api";
 
 // ── Reusable upload zone ──────────────────────────────────────────────
@@ -79,7 +79,8 @@ function UploadZone({ title, hint, uploadFn, onSuccess, color = "var(--accent)" 
 // ── Main App ──────────────────────────────────────────────────────────
 const TABS = [
   { key: "lead",        label: "Leads",          icon: "🌱", desc: "BLG · PLG · SLG · WLG" },
-  { key: "opportunity", label: "Opportunities", icon: "🎯", desc: "BOG · POG · SOG · WOG" },
+  { key: "opportunity", label: "Opportunities",  icon: "🎯", desc: "BOG · POG · SOG · WOG" },
+  { key: "excel",       label: "Excel Data",     icon: "📋", desc: "Cross-verify raw records" },
 ];
 
 export default function App() {
@@ -151,6 +152,8 @@ export default function App() {
       <main style={mainStyle}>
         {activeTab === "opportunity"
           ? <OpportunityPanel refreshKey={oppKey} />
+          : activeTab === "excel"
+          ? <ExcelDataPanel />
           : <LeadsPanel       refreshKey={leadKey} />
         }
       </main>

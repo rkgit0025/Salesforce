@@ -6,6 +6,7 @@ const uploadOppRoute    = require("./routes/upload");
 const uploadLeadsRoute  = require("./routes/upload-leads");
 const analyticsRoute    = require("./routes/analytics");
 const analyticsLeads    = require("./routes/analytics-leads");
+const rawDataRoute      = require("./routes/raw-data");
 
 const app  = express();
 const PORT = process.env.PORT;
@@ -17,6 +18,7 @@ app.use("/api/upload",            uploadOppRoute);
 app.use("/api/upload-leads",      uploadLeadsRoute);
 app.use("/api/analytics",         analyticsRoute);
 app.use("/api/analytics-leads",   analyticsLeads);
+app.use("/api/raw-data",          rawDataRoute);
 
 app.get("/api/health", (_, res) => res.json({ status: "ok" }));
 

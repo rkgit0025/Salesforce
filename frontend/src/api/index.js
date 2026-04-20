@@ -40,3 +40,7 @@ export const getLeadStatusOverTime = (dept) => api.get("/analytics-leads/status-
 export const getLeadByIndustry     = (dept) => api.get("/analytics-leads/by-industry",    p(dept)).then(r => r.data);
 export const getLeadByState        = (dept) => api.get("/analytics-leads/by-state",       p(dept)).then(r => r.data);
 export const getLeadByOwner        = (dept) => api.get("/analytics-leads/by-owner",       p(dept)).then(r => r.data);
+
+// ── Raw table data (Excel cross-verify) ──────────────────────────────
+export const getRawOpportunities = (params) => api.get("/raw-data/opportunities", { params }).then(r => r.data);
+export const getRawLeads         = (params) => api.get("/raw-data/leads",         { params }).then(r => r.data);
